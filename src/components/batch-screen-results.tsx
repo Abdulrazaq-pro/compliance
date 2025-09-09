@@ -214,20 +214,20 @@ export function BatchResults() {
   return (
     <div className="space-y-8 mx-auto p-6 max-w-7xl">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 p-6 shadow-sm">
+      <div className="bg-gradient-to-r bg-blue-100 dark:bg-gray-800 border rounded-xl  p-6 shadow-sm">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg shadow-inner">
+              <div className="p-2 bg-blue-100 dark:bg-gray-600 rounded-lg shadow-inner">
                 <Users className="h-6 w-6 text-blue-600" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 Batch Screening Results
               </h1>
             </div>
-            <p className="text-gray-600 text-lg">
+            <p className="text-gray-900 dark:text-white text-lg">
               Successfully processed{" "}
-              <span className="font-semibold text-gray-900">
+              <span className="font-semibold text-gray-900 dark:text-white">
                 {totalRecords}
               </span>{" "}
               record{totalRecords !== 1 ? "s" : ""}
@@ -250,9 +250,7 @@ export function BatchResults() {
           </div>
         </div>
       </div>
-
-      ---
-
+      {/* --- */}
       {/* Filters Section */}
       <FiltersSection
         filterRiskLevel={filterRiskLevel}
@@ -260,9 +258,7 @@ export function BatchResults() {
         filterHasMatches={filterHasMatches}
         setFilterHasMatches={setFilterHasMatches}
       />
-
-      ---
-
+      {/* --- */}
       {/* Summary Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <SummaryCard
@@ -315,9 +311,7 @@ export function BatchResults() {
           }
         />
       </div>
-
-      ---
-
+      {/* --- */}
       {/* Results Table Card */}
       <Card className="shadow-sm border-gray-200">
         <CardHeader className="pb-4">
@@ -372,7 +366,8 @@ export function BatchResults() {
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                             <Globe className="h-3 w-3" />
-                            {result.aiAnalysis?.bioDetails?.nationality || 'N/A'}
+                            {result.aiAnalysis?.bioDetails?.nationality ||
+                              "N/A"}
                           </div>
                         </button>
                       </TableCell>
@@ -381,7 +376,7 @@ export function BatchResults() {
                       </TableCell>
                       <TableCell>
                         <div className="font-mono text-sm bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-2 py-1 rounded border dark:border-gray-700">
-                          {result.aiAnalysis?.riskScore || 'N/A'}
+                          {result.aiAnalysis?.riskScore || "N/A"}
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
@@ -401,7 +396,9 @@ export function BatchResults() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <StatusIndicator riskLevel={result.aiAnalysis?.riskLevel} />
+                        <StatusIndicator
+                          riskLevel={result.aiAnalysis?.riskLevel}
+                        />
                       </TableCell>
                       <TableCell className="text-center">
                         <Button
@@ -443,9 +440,7 @@ export function BatchResults() {
           </div>
         </CardContent>
       </Card>
-
-      ---
-
+      {/* --- */}
       {/* Person Detail Modal */}
       {selectedPerson && (
         <PersonDetailModal

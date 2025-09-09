@@ -53,14 +53,9 @@ type ScreeningResult = {
 };
 
 export function ScreeningResults() {
-  //  const results = mockResults;
   const { results, isLoading, error } = useData();
-  const [reviewStatus, setReviewStatus] = useState<string>("");
-  const [reviewRationale, setReviewRationale] = useState<string>("");
   const [filterRiskLevel, setFilterRiskLevel] = useState<string>("all");
-  const [filterHasMatches, setFilterHasMatches] = useState<boolean | null>(
-    null
-  );
+  const [filterHasMatches, setFilterHasMatches] = useState<boolean | null>(null);
 
   const allResults: ScreeningResult[] = useMemo(() => {
     if (!results) return [];
@@ -113,6 +108,7 @@ export function ScreeningResults() {
       </div>
     );
   }
+
   return (
     <div className="space-y-6">
       {/* Filters Section */}
@@ -126,34 +122,9 @@ export function ScreeningResults() {
       {/* Display all filtered results stacked vertically */}
       <div className="space-y-4">
         {filteredResults.map((result) => (
-          <div key={result._id} className="space-y-4">
-            {result.matches?.length > 0 && (
-              <MatchAlert matchCount={result.matches.length} />
-            )}
-
-            <ResultCard
-              result={result}
-              reviewStatus={reviewStatus}
-              setReviewStatus={setReviewStatus}
-              reviewRationale={reviewRationale}
-              setReviewRationale={setReviewRationale}
-            />
-          </div>
+          <ResultCard key={result._id} result={result} />
         ))}
       </div>
-      {/* Match Alert */}
-      {/* {currentResult.matches?.length > 0 && (
-        <MatchAlert matchCount={currentResult.matches.length} />
-      )} */}
-
-      {/* Main Result Card */}
-      {/* <ResultCard 
-        result={currentResult}
-        reviewStatus={reviewStatus}
-        setReviewStatus={setReviewStatus}
-        reviewRationale={reviewRationale}
-        setReviewRationale={setReviewRationale}
-      /> */}
     </div>
   );
 }
@@ -273,49 +244,6 @@ function FiltersSection({
     </div>
   );
 }
-function ResultsNavigation({
-  results,
-  activeIndex,
-  setActiveIndex,
-}: {
-  results: ScreeningResult[];
-  activeIndex: number;
-  setActiveIndex: (index: number) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {results.map((result, index) => (
-        <Button
-          key={result._id || index}
-          variant={activeIndex === index ? "default" : "outline"}
-          size="sm"
-          onClick={() => setActiveIndex(index)}
-          className={`${
-            result.riskLevel === "HIGH"
-              ? "border-red-200 dark:border-red-800"
-              : result.riskLevel === "MEDIUM"
-              ? "border-orange-200 dark:border-orange-800"
-              : "border-green-200 dark:border-green-800"
-          }`}
-        >
-          {result.fullName}
-          <Badge
-            variant="outline"
-            className={`ml-2 ${
-              result.riskLevel === "HIGH"
-                ? "bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-200 dark:border-red-800"
-                : result.riskLevel === "MEDIUM"
-                ? "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900 dark:text-orange-200 dark:border-orange-800"
-                : "bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-800"
-            }`}
-          >
-            {result.riskLevel}
-          </Badge>
-        </Button>
-      ))}
-    </div>
-  );
-}
 
 function MatchAlert({ matchCount }: { matchCount: number }) {
   return (
@@ -331,61 +259,89 @@ function MatchAlert({ matchCount }: { matchCount: number }) {
   );
 }
 
-function ResultCard({
-  result,
-  reviewStatus,
-  setReviewStatus,
-  reviewRationale,
-  setReviewRationale,
-}: {
-  result: ScreeningResult;
-  reviewStatus: string;
-  setReviewStatus: (value: string) => void;
-  reviewRationale: string;
-  setReviewRationale: (value: string) => void;
-}) {
+function ResultCard({ result }: { result: ScreeningResult }) {
+  const [reviewStatus, setReviewStatus] = useState<string>("");
+  const [reviewRationale, setReviewRationale] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!reviewRationale.trim()) return;
+
+    setLoading(true);
+    try {
+      await fetch(`${process.env.NEXT_BACKEND}/api/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          rationale: reviewRationale,
+          resultId: result._id,
+          status: reviewStatus
+        }),
+      });
+
+      setSubmitted(true);
+      setReviewRationale("");
+
+      setTimeout(() => setSubmitted(false), 2000);
+    } catch (err) {
+      console.error("Submission failed", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <Card className="overflow-hidden">
-      <CardHeader
-        className={`${
-          result.riskLevel === "HIGH"
-            ? "bg-red-50 dark:bg-red-900/20 border-b border-red-100 dark:border-red-800"
-            : result.riskLevel === "MEDIUM"
-            ? "bg-orange-50 dark:bg-orange-900/20 border-b border-orange-100 dark:border-orange-800"
-            : "bg-green-50 dark:bg-green-900/20 border-b border-green-100 dark:border-green-800"
-        }`}
-      >
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-bold">{result.fullName}</CardTitle>
-          <Badge
-            variant="outline"
-            className={`${
-              result.riskLevel === "HIGH"
-                ? "bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-200 dark:border-red-800"
-                : result.riskLevel === "MEDIUM"
-                ? "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900 dark:text-orange-200 dark:border-orange-800"
-                : "bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-800"
-            }`}
-          >
-            {result.riskLevel} RISK (Score: {result.riskScore})
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="p-0">
-        {result.matches?.length > 0 && (
-          <MatchesSection matches={result.matches} />
-        )}
+    <div className="space-y-4">
+      {result.matches?.length > 0 && (
+        <MatchAlert matchCount={result.matches.length} />
+      )}
+      
+      <Card className="overflow-hidden">
+        <CardHeader
+          className={`${
+            result.riskLevel === "HIGH"
+              ? "bg-red-50 dark:bg-red-900/20 border-b border-red-100 dark:border-red-800"
+              : result.riskLevel === "MEDIUM"
+              ? "bg-orange-50 dark:bg-orange-900/20 border-b border-orange-100 dark:border-orange-800"
+              : "bg-green-50 dark:bg-green-900/20 border-b border-green-100 dark:border-green-800"
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg font-bold">{result.fullName}</CardTitle>
+            <Badge
+              variant="outline"
+              className={`${
+                result.riskLevel === "HIGH"
+                  ? "bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-200 dark:border-red-800"
+                  : result.riskLevel === "MEDIUM"
+                  ? "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900 dark:text-orange-200 dark:border-orange-800"
+                  : "bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-800"
+              }`}
+            >
+              {result.riskLevel} RISK (Score: {result.riskScore})
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          {result.matches?.length > 0 && (
+            <MatchesSection matches={result.matches} />
+          )}
 
-        <ResultTabs result={result} />
+          <ResultTabs result={result} />
 
-        <ReviewSection
-          reviewStatus={reviewStatus}
-          setReviewStatus={setReviewStatus}
-          reviewRationale={reviewRationale}
-          setReviewRationale={setReviewRationale}
-        />
-      </CardContent>
-    </Card>
+          <ReviewSection
+            reviewStatus={reviewStatus}
+            setReviewStatus={setReviewStatus}
+            reviewRationale={reviewRationale}
+            setReviewRationale={setReviewRationale}
+            onSubmit={handleSubmit}
+            loading={loading}
+            submitted={submitted}
+          />
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
@@ -419,7 +375,7 @@ function MatchesSection({ matches }: { matches: any[] }) {
             )}
             {match.details?.lastUpdated && (
               <p>
-                <strong>Last Updated:</strong>{" "}
+                <strong>Last Updated:</strong>
                 {new Date(match.details.lastUpdated).toLocaleDateString()}
               </p>
             )}
@@ -623,11 +579,17 @@ function ReviewSection({
   setReviewStatus,
   reviewRationale,
   setReviewRationale,
+  onSubmit,
+  loading,
+  submitted,
 }: {
   reviewStatus: string;
   setReviewStatus: (value: string) => void;
   reviewRationale: string;
   setReviewRationale: (value: string) => void;
+  onSubmit: () => void;
+  loading: boolean;
+  submitted: boolean;
 }) {
   return (
     <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 space-y-4">
@@ -657,7 +619,6 @@ function ReviewSection({
           </Button>
         </div>
       </div>
-
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Review Rationale *
@@ -670,11 +631,13 @@ function ReviewSection({
           rows={3}
         />
       </div>
-
       <div className="flex justify-end">
-        <Button className="bg-blue-600 hover:bg-blue-700">
-          <CheckCircle className="mr-2 h-4 w-4" />
-          Submit Review
+        <Button
+          onClick={onSubmit}
+          disabled={loading || submitted}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          <CheckCircle className="mr-2 h-4 w-4" /> Submit Review
         </Button>
       </div>
     </div>
